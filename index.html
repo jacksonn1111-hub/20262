@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2학기 교과별 평가계획 확인</title>
+<style>
+  :root{
+    --navy:#1B3A6B; --navy-d:#142C52; --line:#E2E6ED; --ink:#1E2530;
+    --muted:#6B7480; --bg:#F4F6F9; --done:#F3FAF5; --done-fg:#22794F;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;}
+  header{background:var(--navy);color:#fff;padding:22px 20px 20px}
+  .wrap{max-width:900px;margin:0 auto}
+  h1{margin:0;font-size:20px;font-weight:700;letter-spacing:-.01em}
+  header p{margin:6px 0 0;font-size:13.5px;color:#C3D0E6}
+  .hbar{margin-top:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .hbar input{padding:8px 11px;font-size:13.5px;border:none;border-radius:7px;width:240px;max-width:100%;
+    background:#fff;color:var(--ink)}
+  .sync{font-size:12px;color:#AFC0DC}
+  main{max-width:900px;margin:0 auto;padding:22px 20px 60px}
+  .gcard{display:block;width:100%;text-align:left;padding:18px 20px;border:1px solid var(--line);
+    border-radius:10px;background:#fff;cursor:pointer;margin-bottom:12px;font:inherit;color:inherit}
+  .gcard:hover{border-color:var(--navy)}
+  .gtop{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+  .gname{font-size:19px;font-weight:700}
+  .gnum{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .bar{margin-top:12px;height:5px;background:#EDF0F4;border-radius:3px;overflow:hidden}
+  .bar>i{display:block;height:100%;background:var(--navy);transition:width .3s}
+  .bar>i.full{background:#3F9E6B}
+  .topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+  .back{background:none;border:none;color:var(--navy);font-size:14px;font-weight:600;cursor:pointer;padding:0;font-family:inherit}
+  .back:hover{text-decoration:underline}
+  .search{width:100%;padding:10px 12px;font-size:14px;border:1px solid var(--line);border-radius:8px;
+    margin-bottom:14px;background:#fff;color:var(--ink);font-family:inherit}
+  .list{border:1px solid var(--line);border-radius:10px;background:#fff;overflow:hidden}
+  .item+.item{border-top:1px solid var(--line)}
+  .row{display:flex;align-items:center;gap:10px;padding:13px 14px;background:#fff}
+  .row.done{background:var(--done)}
+  .row:hover{background:#F7F9FC}
+  .row.done:hover{background:#EDF7F1}
+  .rowbtn{flex:1;display:flex;align-items:center;gap:10px;background:none;border:none;cursor:pointer;
+    text-align:left;padding:0;min-width:0;font-family:inherit;color:inherit}
+  .idx{font-size:12px;color:var(--muted);width:22px;flex-shrink:0;font-variant-numeric:tabular-nums}
+  .sname{font-size:15px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tag{font-size:11.5px;padding:2px 7px;border-radius:4px;flex-shrink:0;font-weight:600}
+  .cred{font-size:12.5px;color:var(--muted);flex-shrink:0;font-variant-numeric:tabular-nums}
+  .donetxt{font-size:12px;color:var(--done-fg);font-weight:700;flex-shrink:0}
+  .chk{width:26px;height:26px;flex-shrink:0;border-radius:6px;cursor:pointer;border:1.5px solid #C7CDD6;
+    background:#fff;color:#fff;font-size:14px;line-height:1;padding:0}
+  .chk:hover{border-color:var(--navy)}
+  .chk.on{background:#2E8B57;border:none}
+  .meta{padding:0 14px 11px 46px;font-size:12px;color:var(--muted);background:#fff}
+  .meta.done{background:var(--done)}
+  .editor{padding:4px 14px 18px;background:#FAFBFC;border-top:1px solid var(--line)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin:14px 0}
+  label span{display:block;font-size:11.5px;color:var(--muted);margin-bottom:4px}
+  .grid input,.editor textarea{width:100%;padding:8px 10px;font-size:14px;border:1px solid var(--line);
+    border-radius:6px;background:#fff;color:var(--ink);font-family:inherit;font-variant-numeric:tabular-nums}
+  .editor textarea{resize:vertical}
+  .acts{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px}
+  .primary{padding:9px 18px;font-size:14px;font-weight:600;color:#fff;background:var(--navy);border:none;
+    border-radius:7px;cursor:pointer;font-family:inherit}
+  .primary:hover{background:var(--navy-d)}
+  .ghost{padding:9px 14px;font-size:14px;color:var(--muted);background:none;border:1px solid var(--line);
+    border-radius:7px;cursor:pointer;font-family:inherit}
+  .empty{padding:24px;text-align:center;color:var(--muted);font-size:14px}
+  .notice{background:#FFF6E0;border:1px solid #F0DCA8;color:#7A5B12;padding:11px 14px;border-radius:8px;
+    font-size:13px;margin-bottom:16px;line-height:1.6}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#22303F;color:#fff;
+    padding:10px 18px;border-radius:8px;font-size:13.5px;box-shadow:0 6px 20px rgba(0,0,0,.18);z-index:50}
+  input:focus,textarea:focus,button:focus-visible{outline:2px solid var(--navy);outline-offset:1px}
+  @media (max-width:520px){ .cred,.tag{display:none} }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>2학기 교과별 평가계획 확인</h1>
+    <p>담당 과목의 항목을 확인하고, 고칠 부분은 직접 수정한 뒤 확인 완료를 눌러 주세요.</p>
+    <div class="hbar">
+      <input id="teacher" placeholder="이름 (수정·확인 시 기록됩니다)">
+      <span class="sync" id="sync">불러오는 중…</span>
+    </div>
+  </div>
+</header>
+<main id="app"></main>
+
+<script type="module">
+/* ═══════════════════════════════════════════════════════════
+   ① 여기에 Firebase 설정을 붙여 넣으세요. (README 참고)
+      비워 두면 이 브라우저에만 저장되는 연습 모드로 동작합니다.
+   ═══════════════════════════════════════════════════════════ */
+const FIREBASE_CONFIG = {
+  apiKey: "",
+  authDomain: "",
+  databaseURL: "",
+  projectId: "",
+};
+
+/* 학교 안에서만 쓰도록 간단한 접속 코드를 걸 수 있습니다.
+   빈 문자열로 두면 코드 없이 바로 들어옵니다. 예: "2026-2" */
+const ACCESS_CODE = "";
+
+/* ── 원본 데이터 ── */
+const F = ["name","cat","credits","split","ex1","ex2","p1","p2","p3","p4","areas","ratio","note"];
+const LABELS = {name:"과목명",cat:"구분",credits:"학점",split:"성취수준별 분할점수",
+  ex1:"정기시험 1차",ex2:"정기시험 2차",p1:"수행평가 1",p2:"수행평가 2",p3:"수행평가 3",p4:"수행평가 4",
+  areas:"영역 수",ratio:"서논술형 비율",note:"비고(선택·서답)"};
+
+const RAW = {
+1:[
+["공통국어2","보통-공통","3/3","고정","20(6)","20(6)","30(30)","30(30)","","","2","72","▸서논술형평가 적용"],
+["공통영어2(외)","보통-공통","4/0","추정","30(6)","30(6)","20(10)","20(10)","","","2","32","▸서논술형평가 적용"],
+["공통영어2(미)","보통-공통","0/4","추정","20(6)","20(6)","30(10)","30(10)","","","2","32","▸서논술형평가 적용"],
+["공통수학2","보통-공통","3/0","추정","20(6)","20(6)","30(8)","30(0)","","","2","20","▸서논술형평가 적용"],
+["공통수학2","보통-공통","0/3","추정","20(6)","20(6)","30(20)","30(20)","","","2","52","▸서논술형평가 적용"],
+["한국사2","보통-공통","3/3","추정","30(6)","30(6)","20(20)","20(20)","","","2","52","▸서논술형평가 적용"],
+["통합과학2","보통-공통","3/3","추정","30(6)","30(6)","20(20)","20(20)","","","2","52","▸서논술형평가 적용"],
+["체육2","보통-일선","2/2","고정","-","-","50","50","","","2","","-"],
+["회계원리","전공-일반","0/4","고정","30","30","20","20","","","2","","70↓/30↑"],
+["영상제작기초","전공-일반","0/4","고정","30","30","20","20","","","2","","70↓/30↑"],
+["컴퓨터그래픽","전공-일반","0/3","고정","20","20","30","30","","","2","","100/0"],
+["식품과영양","전공-일반","8/0","고정","30","30","20","20","","","2","","70↓/30↑"],
+["디저트조리","전공-일반","7/0","고정","30","30","20","20","","","2","","100/0"],
+["보건","교양-진로","2/0","-","-","-","-","-","","","","","P/F"]],
+2:[
+["문학","보통-일선","0/0/3","고정","20(6)","20(6)","30(30)","30(24)","","","2","66","▸서논술형평가 적용"],
+["문학과 영상","보통-일선","0/3/0","고정","20(6)","20(6)","30(30)","30(30)","","","2","72","▸서논술형평가 적용"],
+["확률과 통계","보통-일선","3/0/0","고정","20(6)","20(6)","30(20)","30(20)","","","2","52","▸서논술형평가 적용"],
+["직무수학","보통-일선","0/0/3","고정","20(6)","20(6)","30(8)","30(8)","","","2","28","▸서논술형평가 적용"],
+["직무영어","보통-일선","0/3/3","고정","30(6)","30(6)","20(10)","20(10)","","","2","32","▸서논술형평가 적용"],
+["통합사회2","보통-공통","3/3/3","추정","30(6)","30(6)","20(20)","20(20)","","","2","52","▸서논술형평가 적용"],
+["중국어회화","보통-일선","3/3/3","고정","30","30","30","10","","","2","","70↓/30↑"],
+["운동과건강","보통-진로","3/3/3","고정","-","-","50","50","","","2","","-"],
+["미술 창작","보통-진로","3/3/3","고정","-","-","30","30","40","","3","","-"],
+["회계정보처리시스템","전공-일반","0/0/3","고정","30","30","20","20","","","2","","100/0"],
+["기업자원통합관리(선택)","전공-일반","0/6/0","고정","20","20","20","20","20","","3","","100/0"],
+["세무일반","전공-일반","0/5/0","고정","30","30","20","20","","","2","","70↓/30↑"],
+["방송일반","전공-일반","0/5/0","고정","20","20","30","30","","","2","","70↓/30↑"],
+["영화콘텐츠제작(선택)","전공-실무","0/6/0","고정","-","30","20","30","20","","3","","70↓/30↑"],
+["한식조리","전공-실무","4/0/0","고정","-","40","30","30","","","2","","100/0"],
+["양식조리","전공-실무","6/0/0","고정","-","30","35","35","","","2","","100/0"],
+["제빵","전공-실무","4/0/0","고정","-","30","35","35","","","2","","100/0"]],
+3:[
+["성공적인직업생활(외)","보통-일반","2/0/0","고정","40","-","30","30","","","2","","70↓/30↑"],
+["성공적인직업생활(디,이)","보통-일반","0/2/2","고정","40","-","30","30","","","2","","100/0"],
+["인공지능기초","보통-진로","2/2/2","고정","60","-","20","20","","","2","","100/0"],
+["체육","보통-일반","1/1/1","고정","-","-","50","50","","","2","","-"],
+["기업과경영(학과간)","전문-기초","0/2/2","고정","60","-","20","20","","","2","","100/0"],
+["사무관리","전문-기초","2/0/0","고정","60","-","20","20","","","2","","100/0"],
+["세무일반","전문-기초","0/0/4","고정","60","-","20","20","","","2","","100/0"],
+["세무일반(선택)","전문-기초","0/4/0","고정","60","-","20","20","","","2","","100/0"],
+["비즈니스영어","전문-기초","0/0/3","고정","60","-","20","20","","","2","","100/0"],
+["금융일반","전문-기초","0/0/4","고정","60","-","20","20","","","2","","70↓/30↑"],
+["마케팅과광고(학과간)","전문-기초","0/2/2","고정","40","-","30","30","","","2","","100/0"],
+["창업일반","전문-기초","0/0/4","고정","40","-","30","30","","","2","","100/0"],
+["비서(학과간)","전문-실무","0/2/2","고정","40","-","30","30","","","2","","100/0"],
+["사무행정","전문-실무","0/4/4","고정","30","-","35","35","","","2","","100/0"],
+["회계실무(선택)","전문-실무","0/4/0","고정","30","-","35","35","","","2","","100/0"],
+["회계실무","전문-실무","0/0/3","고정","30","-","35","35","","","2","","100/0"],
+["방송콘텐츠제작(선택)","전문-실무","0/4/0","고정","30","-","30","40","","","2","","100/0"],
+["영화콘텐츠제작(선택)","전문-실무","0/4/0","고정","30","-","35","35","","","2","","100/0"],
+["광고콘텐츠제작","전문-실무","0/6/0","고정","30","-","35","35","","","2","","100/0"],
+["한국조리","전문-실무","3/0/0","고정","30","-","35","35","","","2","","100/0"],
+["서양조리","전문-실무","3/0/0","고정","30","-","35","35","","","2","","100/0"],
+["중식조리","전문-실무","3/0/0","고정","30","-","35","35","","","2","","100/0"],
+["바리스타","전문-실무","3/0/0","고정","30","-","35","35","","","2","","100/0"],
+["바텐더(선택)","전문-실무","7/0/0","고정","30","-","20","30","20","","3","","100/0"],
+["제빵(선택)","전문-실무","7/0/0","고정","30","-","25","25","20","","3","","100/0"],
+["제과","전문-실무","3/0/0","고정","30","-","35","35","","","2","","100/0"]],
+};
+
+const BASE = {};
+for (const g of [1,2,3]) {
+  BASE[g] = RAW[g].map((row, i) => {
+    const o = { id: `g${g}-${i}`, memo: "" };
+    F.forEach((k, j) => o[k] = row[j] ?? "");
+    return o;
+  });
+}
+
+const TINT = {"보통":["#E7EDF8","#264C86"],"전공":["#FCEFE2","#8A5320"],
+  "전문":["#E6F1EE","#1F6355"],"교양":["#EEEAF7","#54418F"]};
+const tint = c => TINT[(c||"").split("-")[0]] || ["#EEF0F3","#6B7480"];
+const esc = s => String(s ?? "").replace(/[&<>"]/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
+const fmt = ts => { if(!ts) return ""; const d=new Date(ts), p=n=>String(n).padStart(2,"0");
+  return `${d.getMonth()+1}/${d.getDate()} ${p(d.getHours())}:${p(d.getMinutes())}`; };
+
+/* ── 상태 ── */
+const S = { grade:null, remote:{1:{},2:{},3:{}}, open:null, draft:null, q:"", pending:false };
+const app = document.getElementById("app");
+const syncEl = document.getElementById("sync");
+const teacherEl = document.getElementById("teacher");
+teacherEl.value = localStorage.getItem("evalplan.teacher") || "";
+teacherEl.addEventListener("input", () => localStorage.setItem("evalplan.teacher", teacherEl.value));
+
+let toastT;
+function toast(msg){
+  clearTimeout(toastT);
+  let el = document.querySelector(".toast");
+  if(!el){ el = document.createElement("div"); el.className="toast"; document.body.appendChild(el); }
+  el.textContent = msg;
+  toastT = setTimeout(()=>el.remove(), 2200);
+}
+
+/* ── 저장소: Firebase 또는 로컬 ── */
+let backend = null;
+const LIVE = !!FIREBASE_CONFIG.databaseURL;
+
+async function initBackend(){
+  if (!LIVE) {
+    backend = {
+      live:false,
+      async save(g, id, entry){
+        const k = `evalplan.g${g}`;
+        const cur = JSON.parse(localStorage.getItem(k) || "{}");
+        cur[id] = { ...(cur[id]||{}), ...entry };
+        localStorage.setItem(k, JSON.stringify(cur));
+        S.remote[g] = cur; render();
+      }
+    };
+    for (const g of [1,2,3]) S.remote[g] = JSON.parse(localStorage.getItem(`evalplan.g${g}`) || "{}");
+    syncEl.textContent = "연습 모드 — 이 브라우저에만 저장됩니다";
+    render();
+    return;
+  }
+  const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+  const { getDatabase, ref, onValue, update } =
+    await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js");
+  const db = getDatabase(initializeApp(FIREBASE_CONFIG));
+  backend = {
+    live:true,
+    async save(g, id, entry){
+      await update(ref(db, `evalplan/g${g}/${id}`), entry);
+    }
+  };
+  for (const g of [1,2,3]) {
+    onValue(ref(db, `evalplan/g${g}`), snap => {
+      S.remote[g] = snap.val() || {};
+      syncEl.textContent = `최신 상태 ${fmt(Date.now())}`;
+      if (S.open) { S.pending = true; } else { render(); }
+    }, () => { syncEl.textContent = "연결에 실패했습니다"; });
+  }
+}
+
+const merged = g => BASE[g].map(s => ({ ...s, ...(S.remote[g]?.[s.id]?.data || {}), _m: S.remote[g]?.[s.id] || null }));
+const counts = g => ({ done: BASE[g].filter(s => S.remote[g]?.[s.id]?.done).length, total: BASE[g].length });
+
+async function save(g, id, entry, msg){
+  syncEl.textContent = "저장 중…";
+  try {
+    await backend.save(g, id, entry);
+    syncEl.textContent = `최신 상태 ${fmt(Date.now())}`;
+    toast(msg);
+    return true;
+  } catch(e){
+    syncEl.textContent = "저장에 실패했습니다";
+    toast("저장하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+    return false;
+  }
+}
+
+/* ── 화면 ── */
+function render(){
+  S.pending = false;
+  app.innerHTML = S.grade ? viewList() : viewGrades();
+  bind();
+}
+
+function viewGrades(){
+  const warn = backend && !backend.live
+    ? `<div class="notice">지금은 <b>연습 모드</b>입니다. 수정한 내용이 이 브라우저에만 남고 다른 선생님에게는 보이지 않습니다.
+       index.html 위쪽의 Firebase 설정을 채우면 실시간 공유가 켜집니다.</div>` : "";
+  return warn + `<p style="color:var(--muted);font-size:14px;margin:0 0 18px">담당 학년을 선택하면 과목 목록이 열립니다.</p>` +
+    [1,2,3].map(g => {
+      const c = counts(g), pct = Math.round(c.done / c.total * 100);
+      return `<button class="gcard" data-grade="${g}">
+        <div class="gtop"><div class="gname">${g}학년</div>
+        <div class="gnum">확인 ${c.done} / ${c.total}과목</div></div>
+        <div class="bar"><i class="${pct===100?"full":""}" style="width:${pct}%"></i></div></button>`;
+    }).join("");
+}
+
+function viewList(){
+  const g = S.grade, c = counts(g);
+  const q = S.q.trim();
+  const rows = merged(g).map((s, i) => [s, i]).filter(([s]) => !q || s.name.includes(q) || s.cat.includes(q));
+  const body = rows.length === 0
+    ? `<div class="empty">찾는 과목이 없습니다. 검색어를 지워 보세요.</div>`
+    : rows.map(([s, i]) => item(s, i)).join("");
+  return `<div class="topbar">
+      <button class="back" id="back">← 학년 다시 선택</button>
+      <span class="gnum">${g}학년 · 확인 ${c.done}/${c.total}</span>
+    </div>
+    <input class="search" id="q" placeholder="과목명으로 찾기" value="${esc(S.q)}">
+    <div class="list">${body}</div>`;
+}
+
+function item(s, i){
+  const done = !!s._m?.done, [bg, fg] = tint(s.cat), open = S.open === s.id;
+  const metaTxt = [
+    s._m?.checkedBy ? `${esc(s._m.checkedBy)} 확인 ${fmt(s._m.checkedAt)}` : "",
+    s._m?.updatedBy ? `${esc(s._m.updatedBy)} 수정 ${fmt(s._m.updatedAt)}` : ""
+  ].filter(Boolean).join(" · ");
+  return `<div class="item">
+    <div class="row ${done?"done":""}">
+      <button class="rowbtn" data-open="${s.id}">
+        <span class="idx">${i+1}</span>
+        <span class="sname">${esc(s.name)}</span>
+        <span class="tag" style="background:${bg};color:${fg}">${esc(s.cat)}</span>
+        <span class="cred">${esc(s.credits)}</span>
+      </button>
+      ${done?'<span class="donetxt">확인 완료</span>':""}
+      <button class="chk ${done?"on":""}" data-chk="${s.id}" aria-label="확인 완료 표시">${done?"✓":""}</button>
+    </div>
+    ${open ? editor(s) : (metaTxt ? `<div class="meta ${done?"done":""}">${metaTxt}</div>` : "")}
+  </div>`;
+}
+
+function editor(s){
+  const d = S.draft;
+  return `<div class="editor">
+    <div class="grid">${F.map(k => `<label><span>${LABELS[k]}</span>
+      <input data-f="${k}" value="${esc(d[k] ?? "")}"></label>`).join("")}</div>
+    <label><span>수정 사유 · 남길 말</span>
+      <textarea data-f="memo" rows="2">${esc(d.memo ?? "")}</textarea></label>
+    <div class="acts">
+      <button class="primary" data-save="${s.id}">수정 내용 저장</button>
+      <button class="ghost" data-cancel="1">취소</button>
+      ${s._m?.updatedBy ? `<span class="gnum">최근 수정 ${esc(s._m.updatedBy)} · ${fmt(s._m.updatedAt)}</span>` : ""}
+    </div></div>`;
+}
+
+function bind(){
+  app.querySelectorAll("[data-grade]").forEach(b =>
+    b.onclick = () => { S.grade = +b.dataset.grade; S.open = null; S.q = ""; render(); });
+  const back = document.getElementById("back");
+  if (back) back.onclick = () => { S.grade = null; S.open = null; render(); };
+
+  const q = document.getElementById("q");
+  if (q) q.oninput = e => { S.q = e.target.value; const p = e.target.selectionStart; render();
+    const n = document.getElementById("q"); n.focus(); n.setSelectionRange(p, p); };
+
+  app.querySelectorAll("[data-open]").forEach(b => b.onclick = () => {
+    const id = b.dataset.open;
+    if (S.open === id) { S.open = null; S.draft = null; }
+    else { S.open = id; S.draft = { ...merged(S.grade).find(x => x.id === id) }; }
+    render();
+  });
+
+  app.querySelectorAll("[data-f]").forEach(el =>
+    el.oninput = () => { S.draft[el.dataset.f] = el.value; });
+
+  app.querySelectorAll("[data-cancel]").forEach(b => b.onclick = () => {
+    S.open = null; S.draft = null; render();
+  });
+
+  app.querySelectorAll("[data-save]").forEach(b => b.onclick = async () => {
+    const name = teacherEl.value.trim();
+    if (!name) { toast("이름을 먼저 입력해 주세요."); teacherEl.focus(); return; }
+    const data = {}; F.forEach(k => data[k] = S.draft[k] ?? ""); data.memo = S.draft.memo ?? "";
+    const ok = await save(S.grade, b.dataset.save, { data, updatedBy: name, updatedAt: Date.now() }, "저장했습니다.");
+    if (ok) { S.open = null; S.draft = null; render(); }
+  });
+
+  app.querySelectorAll("[data-chk]").forEach(b => b.onclick = async () => {
+    const id = b.dataset.chk;
+    const cur = !!S.remote[S.grade]?.[id]?.done;
+    const name = teacherEl.value.trim();
+    if (!cur && !name) { toast("이름을 먼저 입력해 주세요."); teacherEl.focus(); return; }
+    await save(S.grade, id,
+      cur ? { done:false, checkedBy:"", checkedAt:null }
+          : { done:true, checkedBy:name, checkedAt:Date.now() },
+      cur ? "확인 완료를 해제했습니다." : "확인 완료로 표시했습니다.");
+    if (!backend.live) return;
+    render();
+  });
+}
+
+/* ── 시작 ── */
+if (ACCESS_CODE && localStorage.getItem("evalplan.code") !== ACCESS_CODE) {
+  const v = prompt("접속 코드를 입력해 주세요.");
+  if (v === ACCESS_CODE) localStorage.setItem("evalplan.code", v);
+  else { document.body.innerHTML = "<main class='wrap' style='padding:40px 20px'>접속 코드가 맞지 않습니다.</main>"; throw new Error("no access"); }
+}
+initBackend();
+</script>
+</body>
+</html>
