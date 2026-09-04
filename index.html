@@ -5,10 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>2학기 교과별 평가계획 확인</title>
 <style>
-  :root{
-    --navy:#1B3A6B; --navy-d:#142C52; --line:#E2E6ED; --ink:#1E2530;
-    --muted:#6B7480; --bg:#F4F6F9; --done:#F3FAF5; --done-fg:#22794F;
-  }
+  :root{--navy:#1B3A6B;--navy-d:#142C52;--line:#E2E6ED;--ink:#1E2530;
+    --muted:#6B7480;--bg:#F4F6F9;--done:#F3FAF5;--done-fg:#22794F;}
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);
     font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;}
@@ -17,8 +15,7 @@
   h1{margin:0;font-size:20px;font-weight:700;letter-spacing:-.01em}
   header p{margin:6px 0 0;font-size:13.5px;color:#C3D0E6}
   .hbar{margin-top:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-  .hbar input{padding:8px 11px;font-size:13.5px;border:none;border-radius:7px;width:240px;max-width:100%;
-    background:#fff;color:var(--ink)}
+  .hbar input{padding:8px 11px;font-size:13.5px;border:none;border-radius:7px;width:240px;max-width:100%;background:#fff;color:var(--ink)}
   .sync{font-size:12px;color:#AFC0DC}
   main{max-width:900px;margin:0 auto;padding:22px 20px 60px}
   .gcard{display:block;width:100%;text-align:left;padding:18px 20px;border:1px solid var(--line);
@@ -64,6 +61,7 @@
   .primary{padding:9px 18px;font-size:14px;font-weight:600;color:#fff;background:var(--navy);border:none;
     border-radius:7px;cursor:pointer;font-family:inherit}
   .primary:hover{background:var(--navy-d)}
+  .primary[disabled]{opacity:.6;cursor:default}
   .ghost{padding:9px 14px;font-size:14px;color:var(--muted);background:none;border:1px solid var(--line);
     border-radius:7px;cursor:pointer;font-family:inherit}
   .empty{padding:24px;text-align:center;color:var(--muted);font-size:14px}
@@ -72,7 +70,7 @@
   .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#22303F;color:#fff;
     padding:10px 18px;border-radius:8px;font-size:13.5px;box-shadow:0 6px 20px rgba(0,0,0,.18);z-index:50}
   input:focus,textarea:focus,button:focus-visible{outline:2px solid var(--navy);outline-offset:1px}
-  @media (max-width:520px){ .cred,.tag{display:none} }
+  @media (max-width:520px){.cred,.tag{display:none}}
 </style>
 </head>
 <body>
@@ -88,20 +86,15 @@
 </header>
 <main id="app"></main>
 
-<script type="module">
-/* ═══════════════════════════════════════════════════════════
-   ① 여기에 Firebase 설정을 붙여 넣으세요. (README 참고)
+<script>
+/* ══════════════════════════════════════════════════════════════
+   ① 여기에 Apps Script 웹 앱 주소를 붙여 넣으세요. (README 참고)
+      .../exec 로 끝나는 주소입니다.
       비워 두면 이 브라우저에만 저장되는 연습 모드로 동작합니다.
-   ═══════════════════════════════════════════════════════════ */
-const FIREBASE_CONFIG = {
-  apiKey: "",
-  authDomain: "",
-  databaseURL: "",
-  projectId: "",
-};
+   ══════════════════════════════════════════════════════════════ */
+const API_URL = "";
 
-/* 학교 안에서만 쓰도록 간단한 접속 코드를 걸 수 있습니다.
-   빈 문자열로 두면 코드 없이 바로 들어옵니다. 예: "2026-2" */
+/* 학교 안에서만 쓰도록 간단한 접속 코드를 걸 수 있습니다. 빈 값이면 코드 없이 들어옵니다. */
 const ACCESS_CODE = "";
 
 /* ── 원본 데이터 ── */
@@ -175,218 +168,250 @@ const RAW = {
 
 const BASE = {};
 for (const g of [1,2,3]) {
-  BASE[g] = RAW[g].map((row, i) => {
-    const o = { id: `g${g}-${i}`, memo: "" };
-    F.forEach((k, j) => o[k] = row[j] ?? "");
+  BASE[g] = RAW[g].map(function(row, i){
+    const o = { id:"g"+g+"-"+i, grade:g, memo:"" };
+    F.forEach(function(k, j){ o[k] = row[j] || ""; });
     return o;
   });
 }
+const ALL = [].concat(BASE[1], BASE[2], BASE[3]);
 
 const TINT = {"보통":["#E7EDF8","#264C86"],"전공":["#FCEFE2","#8A5320"],
   "전문":["#E6F1EE","#1F6355"],"교양":["#EEEAF7","#54418F"]};
-const tint = c => TINT[(c||"").split("-")[0]] || ["#EEF0F3","#6B7480"];
-const esc = s => String(s ?? "").replace(/[&<>"]/g, m => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]));
-const fmt = ts => { if(!ts) return ""; const d=new Date(ts), p=n=>String(n).padStart(2,"0");
-  return `${d.getMonth()+1}/${d.getDate()} ${p(d.getHours())}:${p(d.getMinutes())}`; };
+function tint(c){ return TINT[String(c||"").split("-")[0]] || ["#EEF0F3","#6B7480"]; }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g, function(m){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]; }); }
+function pad(n){ return String(n).padStart(2,"0"); }
+function stamp(){ const d=new Date();
+  return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate())+" "+pad(d.getHours())+":"+pad(d.getMinutes()); }
+function clock(){ const d=new Date(); return pad(d.getHours())+":"+pad(d.getMinutes()); }
 
 /* ── 상태 ── */
-const S = { grade:null, remote:{1:{},2:{},3:{}}, open:null, draft:null, q:"", pending:false };
+const S = { grade:null, remote:{}, open:null, draft:null, q:"", busy:false };
 const app = document.getElementById("app");
 const syncEl = document.getElementById("sync");
 const teacherEl = document.getElementById("teacher");
 teacherEl.value = localStorage.getItem("evalplan.teacher") || "";
-teacherEl.addEventListener("input", () => localStorage.setItem("evalplan.teacher", teacherEl.value));
+teacherEl.addEventListener("input", function(){ localStorage.setItem("evalplan.teacher", teacherEl.value); });
 
 let toastT;
 function toast(msg){
   clearTimeout(toastT);
   let el = document.querySelector(".toast");
-  if(!el){ el = document.createElement("div"); el.className="toast"; document.body.appendChild(el); }
+  if(!el){ el=document.createElement("div"); el.className="toast"; document.body.appendChild(el); }
   el.textContent = msg;
-  toastT = setTimeout(()=>el.remove(), 2200);
+  toastT = setTimeout(function(){ el.remove(); }, 2200);
 }
 
-/* ── 저장소: Firebase 또는 로컬 ── */
-let backend = null;
-const LIVE = !!FIREBASE_CONFIG.databaseURL;
+/* ── 저장소 (구글 시트 / 연습 모드) ── */
+const LIVE = !!API_URL;
 
-async function initBackend(){
-  if (!LIVE) {
-    backend = {
-      live:false,
-      async save(g, id, entry){
-        const k = `evalplan.g${g}`;
-        const cur = JSON.parse(localStorage.getItem(k) || "{}");
-        cur[id] = { ...(cur[id]||{}), ...entry };
-        localStorage.setItem(k, JSON.stringify(cur));
-        S.remote[g] = cur; render();
-      }
-    };
-    for (const g of [1,2,3]) S.remote[g] = JSON.parse(localStorage.getItem(`evalplan.g${g}`) || "{}");
+async function pull(){
+  if (!LIVE){
+    S.remote = JSON.parse(localStorage.getItem("evalplan.rows") || "{}");
     syncEl.textContent = "연습 모드 — 이 브라우저에만 저장됩니다";
-    render();
     return;
   }
-  const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
-  const { getDatabase, ref, onValue, update } =
-    await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js");
-  const db = getDatabase(initializeApp(FIREBASE_CONFIG));
-  backend = {
-    live:true,
-    async save(g, id, entry){
-      await update(ref(db, `evalplan/g${g}/${id}`), entry);
-    }
-  };
-  for (const g of [1,2,3]) {
-    onValue(ref(db, `evalplan/g${g}`), snap => {
-      S.remote[g] = snap.val() || {};
-      syncEl.textContent = `최신 상태 ${fmt(Date.now())}`;
-      if (S.open) { S.pending = true; } else { render(); }
-    }, () => { syncEl.textContent = "연결에 실패했습니다"; });
-  }
+  const res = await fetch(API_URL + "?action=all&t=" + Date.now());
+  const json = await res.json();
+  if (json.error) throw new Error(json.error);
+  S.remote = json.rows || {};
+  syncEl.textContent = "최신 상태 " + clock();
+  if (Object.keys(S.remote).length === 0) await seed();
 }
 
-const merged = g => BASE[g].map(s => ({ ...s, ...(S.remote[g]?.[s.id]?.data || {}), _m: S.remote[g]?.[s.id] || null }));
-const counts = g => ({ done: BASE[g].filter(s => S.remote[g]?.[s.id]?.done).length, total: BASE[g].length });
+/* 시트가 비어 있으면 원본 57과목을 한 번 채워 넣습니다 */
+async function seed(){
+  const rows = ALL.map(function(s){
+    const o = { id:s.id, grade:s.grade, memo:"" };
+    F.forEach(function(k){ o[k] = s[k]; });
+    return o;
+  });
+  await post({ action:"init", rows: rows });
+  const res = await fetch(API_URL + "?action=all&t=" + Date.now());
+  const json = await res.json();
+  S.remote = json.rows || {};
+}
 
-async function save(g, id, entry, msg){
-  syncEl.textContent = "저장 중…";
-  try {
-    await backend.save(g, id, entry);
-    syncEl.textContent = `최신 상태 ${fmt(Date.now())}`;
+async function post(payload){
+  if (!LIVE){
+    const cur = JSON.parse(localStorage.getItem("evalplan.rows") || "{}");
+    if (payload.action === "init") payload.rows.forEach(function(r){ cur[r.id] = r; });
+    else cur[payload.id] = Object.assign({}, cur[payload.id], payload.entry);
+    localStorage.setItem("evalplan.rows", JSON.stringify(cur));
+    S.remote = cur;
+    return { ok:true };
+  }
+  /* Content-Type을 지정하지 않아야 Apps Script가 사전 요청 없이 받습니다 */
+  const res = await fetch(API_URL, { method:"POST", body: JSON.stringify(payload) });
+  const json = await res.json();
+  if (json.error) throw new Error(json.error);
+  return json;
+}
+
+async function push(id, entry, msg){
+  S.busy = true; syncEl.textContent = "저장 중…";
+  try{
+    await post({ action:"save", id:id, entry:entry });
+    S.remote[id] = Object.assign({}, S.remote[id], entry);
+    syncEl.textContent = "최신 상태 " + clock();
     toast(msg);
     return true;
-  } catch(e){
+  }catch(e){
     syncEl.textContent = "저장에 실패했습니다";
     toast("저장하지 못했습니다. 잠시 후 다시 시도해 주세요.");
     return false;
-  }
+  }finally{ S.busy = false; }
+}
+
+/* 7초마다 다른 선생님의 수정 내용을 가져옵니다. 수정 중일 때는 화면을 다시 그리지 않습니다 */
+setInterval(async function(){
+  if (!LIVE || S.busy || S.open) return;
+  try{ await pull(); render(); }
+  catch(e){ syncEl.textContent = "연결에 실패했습니다"; }
+}, 7000);
+
+/* ── 데이터 결합 ── */
+function merged(g){
+  return BASE[g].map(function(s){
+    const r = S.remote[s.id] || null;
+    const o = Object.assign({}, s);
+    if (r) F.concat(["memo"]).forEach(function(k){
+      if (r[k] !== undefined && r[k] !== null && r[k] !== "") o[k] = String(r[k]);
+    });
+    o._m = r;
+    return o;
+  });
+}
+function counts(g){
+  return { done: BASE[g].filter(function(s){ return S.remote[s.id] && S.remote[s.id].done; }).length,
+           total: BASE[g].length };
 }
 
 /* ── 화면 ── */
 function render(){
-  S.pending = false;
   app.innerHTML = S.grade ? viewList() : viewGrades();
   bind();
 }
 
 function viewGrades(){
-  const warn = backend && !backend.live
-    ? `<div class="notice">지금은 <b>연습 모드</b>입니다. 수정한 내용이 이 브라우저에만 남고 다른 선생님에게는 보이지 않습니다.
-       index.html 위쪽의 Firebase 설정을 채우면 실시간 공유가 켜집니다.</div>` : "";
-  return warn + `<p style="color:var(--muted);font-size:14px;margin:0 0 18px">담당 학년을 선택하면 과목 목록이 열립니다.</p>` +
-    [1,2,3].map(g => {
+  const warn = !LIVE ? '<div class="notice">지금은 <b>연습 모드</b>입니다. 수정한 내용이 이 브라우저에만 남고 다른 선생님에게는 보이지 않습니다. index.html 위쪽 <b>API_URL</b> 에 Apps Script 주소를 넣으면 공유가 켜집니다.</div>' : "";
+  return warn + '<p style="color:var(--muted);font-size:14px;margin:0 0 18px">담당 학년을 선택하면 과목 목록이 열립니다.</p>' +
+    [1,2,3].map(function(g){
       const c = counts(g), pct = Math.round(c.done / c.total * 100);
-      return `<button class="gcard" data-grade="${g}">
-        <div class="gtop"><div class="gname">${g}학년</div>
-        <div class="gnum">확인 ${c.done} / ${c.total}과목</div></div>
-        <div class="bar"><i class="${pct===100?"full":""}" style="width:${pct}%"></i></div></button>`;
+      return '<button class="gcard" data-grade="'+g+'"><div class="gtop"><div class="gname">'+g+'학년</div>'+
+        '<div class="gnum">확인 '+c.done+' / '+c.total+'과목</div></div>'+
+        '<div class="bar"><i class="'+(pct===100?"full":"")+'" style="width:'+pct+'%"></i></div></button>';
     }).join("");
 }
 
 function viewList(){
-  const g = S.grade, c = counts(g);
-  const q = S.q.trim();
-  const rows = merged(g).map((s, i) => [s, i]).filter(([s]) => !q || s.name.includes(q) || s.cat.includes(q));
+  const g = S.grade, c = counts(g), q = S.q.trim();
+  const rows = merged(g).map(function(s,i){ return [s,i]; })
+    .filter(function(p){ return !q || p[0].name.indexOf(q) >= 0 || p[0].cat.indexOf(q) >= 0; });
   const body = rows.length === 0
-    ? `<div class="empty">찾는 과목이 없습니다. 검색어를 지워 보세요.</div>`
-    : rows.map(([s, i]) => item(s, i)).join("");
-  return `<div class="topbar">
-      <button class="back" id="back">← 학년 다시 선택</button>
-      <span class="gnum">${g}학년 · 확인 ${c.done}/${c.total}</span>
-    </div>
-    <input class="search" id="q" placeholder="과목명으로 찾기" value="${esc(S.q)}">
-    <div class="list">${body}</div>`;
+    ? '<div class="empty">찾는 과목이 없습니다. 검색어를 지워 보세요.</div>'
+    : rows.map(function(p){ return item(p[0], p[1]); }).join("");
+  return '<div class="topbar"><button class="back" id="back">← 학년 다시 선택</button>'+
+    '<span class="gnum">'+g+'학년 · 확인 '+c.done+'/'+c.total+'</span></div>'+
+    '<input class="search" id="q" placeholder="과목명으로 찾기" value="'+esc(S.q)+'">'+
+    '<div class="list">'+body+'</div>';
 }
 
 function item(s, i){
-  const done = !!s._m?.done, [bg, fg] = tint(s.cat), open = S.open === s.id;
-  const metaTxt = [
-    s._m?.checkedBy ? `${esc(s._m.checkedBy)} 확인 ${fmt(s._m.checkedAt)}` : "",
-    s._m?.updatedBy ? `${esc(s._m.updatedBy)} 수정 ${fmt(s._m.updatedAt)}` : ""
+  const done = !!(s._m && s._m.done), t = tint(s.cat), open = S.open === s.id;
+  const meta = [
+    s._m && s._m.checkedBy ? esc(s._m.checkedBy)+" 확인 "+esc(s._m.checkedAt||"") : "",
+    s._m && s._m.updatedBy ? esc(s._m.updatedBy)+" 수정 "+esc(s._m.updatedAt||"") : ""
   ].filter(Boolean).join(" · ");
-  return `<div class="item">
-    <div class="row ${done?"done":""}">
-      <button class="rowbtn" data-open="${s.id}">
-        <span class="idx">${i+1}</span>
-        <span class="sname">${esc(s.name)}</span>
-        <span class="tag" style="background:${bg};color:${fg}">${esc(s.cat)}</span>
-        <span class="cred">${esc(s.credits)}</span>
-      </button>
-      ${done?'<span class="donetxt">확인 완료</span>':""}
-      <button class="chk ${done?"on":""}" data-chk="${s.id}" aria-label="확인 완료 표시">${done?"✓":""}</button>
-    </div>
-    ${open ? editor(s) : (metaTxt ? `<div class="meta ${done?"done":""}">${metaTxt}</div>` : "")}
-  </div>`;
+  return '<div class="item"><div class="row '+(done?"done":"")+'">'+
+    '<button class="rowbtn" data-open="'+s.id+'"><span class="idx">'+(i+1)+'</span>'+
+    '<span class="sname">'+esc(s.name)+'</span>'+
+    '<span class="tag" style="background:'+t[0]+';color:'+t[1]+'">'+esc(s.cat)+'</span>'+
+    '<span class="cred">'+esc(s.credits)+'</span></button>'+
+    (done?'<span class="donetxt">확인 완료</span>':"")+
+    '<button class="chk '+(done?"on":"")+'" data-chk="'+s.id+'" aria-label="확인 완료 표시">'+(done?"✓":"")+'</button>'+
+    '</div>'+
+    (open ? editor(s) : (meta ? '<div class="meta '+(done?"done":"")+'">'+meta+'</div>' : ""))+
+    '</div>';
 }
 
 function editor(s){
   const d = S.draft;
-  return `<div class="editor">
-    <div class="grid">${F.map(k => `<label><span>${LABELS[k]}</span>
-      <input data-f="${k}" value="${esc(d[k] ?? "")}"></label>`).join("")}</div>
-    <label><span>수정 사유 · 남길 말</span>
-      <textarea data-f="memo" rows="2">${esc(d.memo ?? "")}</textarea></label>
-    <div class="acts">
-      <button class="primary" data-save="${s.id}">수정 내용 저장</button>
-      <button class="ghost" data-cancel="1">취소</button>
-      ${s._m?.updatedBy ? `<span class="gnum">최근 수정 ${esc(s._m.updatedBy)} · ${fmt(s._m.updatedAt)}</span>` : ""}
-    </div></div>`;
+  return '<div class="editor"><div class="grid">'+
+    F.map(function(k){ return '<label><span>'+LABELS[k]+'</span><input data-f="'+k+'" value="'+esc(d[k])+'"></label>'; }).join("")+
+    '</div><label><span>수정 사유 · 남길 말</span><textarea data-f="memo" rows="2">'+esc(d.memo)+'</textarea></label>'+
+    '<div class="acts"><button class="primary" data-save="'+s.id+'">수정 내용 저장</button>'+
+    '<button class="ghost" data-cancel="1">취소</button>'+
+    (s._m && s._m.updatedBy ? '<span class="gnum">최근 수정 '+esc(s._m.updatedBy)+' · '+esc(s._m.updatedAt||"")+'</span>' : "")+
+    '</div></div>';
 }
 
 function bind(){
-  app.querySelectorAll("[data-grade]").forEach(b =>
-    b.onclick = () => { S.grade = +b.dataset.grade; S.open = null; S.q = ""; render(); });
+  app.querySelectorAll("[data-grade]").forEach(function(b){
+    b.onclick = function(){ S.grade = +b.dataset.grade; S.open=null; S.q=""; render(); }; });
+
   const back = document.getElementById("back");
-  if (back) back.onclick = () => { S.grade = null; S.open = null; render(); };
+  if (back) back.onclick = function(){ S.grade=null; S.open=null; S.draft=null; render(); };
 
   const q = document.getElementById("q");
-  if (q) q.oninput = e => { S.q = e.target.value; const p = e.target.selectionStart; render();
-    const n = document.getElementById("q"); n.focus(); n.setSelectionRange(p, p); };
+  if (q) q.oninput = function(e){
+    S.q = e.target.value; const p = e.target.selectionStart; render();
+    const n = document.getElementById("q"); n.focus(); n.setSelectionRange(p,p); };
 
-  app.querySelectorAll("[data-open]").forEach(b => b.onclick = () => {
-    const id = b.dataset.open;
-    if (S.open === id) { S.open = null; S.draft = null; }
-    else { S.open = id; S.draft = { ...merged(S.grade).find(x => x.id === id) }; }
-    render();
-  });
+  app.querySelectorAll("[data-open]").forEach(function(b){
+    b.onclick = function(){
+      const id = b.dataset.open;
+      if (S.open === id){ S.open=null; S.draft=null; }
+      else {
+        const s = merged(S.grade).filter(function(x){ return x.id===id; })[0];
+        S.open = id; S.draft = Object.assign({}, s);
+      }
+      render();
+    }; });
 
-  app.querySelectorAll("[data-f]").forEach(el =>
-    el.oninput = () => { S.draft[el.dataset.f] = el.value; });
+  app.querySelectorAll("[data-f]").forEach(function(el){
+    el.oninput = function(){ S.draft[el.dataset.f] = el.value; }; });
 
-  app.querySelectorAll("[data-cancel]").forEach(b => b.onclick = () => {
-    S.open = null; S.draft = null; render();
-  });
+  app.querySelectorAll("[data-cancel]").forEach(function(b){
+    b.onclick = function(){ S.open=null; S.draft=null; render(); }; });
 
-  app.querySelectorAll("[data-save]").forEach(b => b.onclick = async () => {
-    const name = teacherEl.value.trim();
-    if (!name) { toast("이름을 먼저 입력해 주세요."); teacherEl.focus(); return; }
-    const data = {}; F.forEach(k => data[k] = S.draft[k] ?? ""); data.memo = S.draft.memo ?? "";
-    const ok = await save(S.grade, b.dataset.save, { data, updatedBy: name, updatedAt: Date.now() }, "저장했습니다.");
-    if (ok) { S.open = null; S.draft = null; render(); }
-  });
+  app.querySelectorAll("[data-save]").forEach(function(b){
+    b.onclick = async function(){
+      const name = teacherEl.value.trim();
+      if (!name){ toast("이름을 먼저 입력해 주세요."); teacherEl.focus(); return; }
+      b.disabled = true; b.textContent = "저장 중…";
+      const entry = { updatedBy:name, updatedAt:stamp(), memo:S.draft.memo || "" };
+      F.forEach(function(k){ entry[k] = S.draft[k] || ""; });
+      const ok = await push(b.dataset.save, entry, "저장했습니다.");
+      if (ok){ S.open=null; S.draft=null; }
+      render();
+    }; });
 
-  app.querySelectorAll("[data-chk]").forEach(b => b.onclick = async () => {
-    const id = b.dataset.chk;
-    const cur = !!S.remote[S.grade]?.[id]?.done;
-    const name = teacherEl.value.trim();
-    if (!cur && !name) { toast("이름을 먼저 입력해 주세요."); teacherEl.focus(); return; }
-    await save(S.grade, id,
-      cur ? { done:false, checkedBy:"", checkedAt:null }
-          : { done:true, checkedBy:name, checkedAt:Date.now() },
-      cur ? "확인 완료를 해제했습니다." : "확인 완료로 표시했습니다.");
-    if (!backend.live) return;
-    render();
-  });
+  app.querySelectorAll("[data-chk]").forEach(function(b){
+    b.onclick = async function(){
+      const id = b.dataset.chk, cur = !!(S.remote[id] && S.remote[id].done);
+      const name = teacherEl.value.trim();
+      if (!cur && !name){ toast("이름을 먼저 입력해 주세요."); teacherEl.focus(); return; }
+      b.disabled = true;
+      await push(id, cur ? { done:false, checkedBy:"", checkedAt:"" }
+                         : { done:true, checkedBy:name, checkedAt:stamp() },
+                 cur ? "확인 완료를 해제했습니다." : "확인 완료로 표시했습니다.");
+      render();
+    }; });
 }
 
 /* ── 시작 ── */
-if (ACCESS_CODE && localStorage.getItem("evalplan.code") !== ACCESS_CODE) {
-  const v = prompt("접속 코드를 입력해 주세요.");
-  if (v === ACCESS_CODE) localStorage.setItem("evalplan.code", v);
-  else { document.body.innerHTML = "<main class='wrap' style='padding:40px 20px'>접속 코드가 맞지 않습니다.</main>"; throw new Error("no access"); }
-}
-initBackend();
+(async function(){
+  if (ACCESS_CODE && localStorage.getItem("evalplan.code") !== ACCESS_CODE){
+    const v = prompt("접속 코드를 입력해 주세요.");
+    if (v === ACCESS_CODE) localStorage.setItem("evalplan.code", v);
+    else { document.body.innerHTML = "<main class='wrap' style='padding:40px 20px'>접속 코드가 맞지 않습니다.</main>"; return; }
+  }
+  try { await pull(); }
+  catch(e){ syncEl.textContent = "불러오지 못했습니다"; }
+  render();
+})();
 </script>
 </body>
 </html>
